@@ -1,0 +1,84 @@
+//list of class drawed in creately.com with account fericodeva69@gmail.com
+List view & class used, and other spesifications:
+1. View Login/Register
+	a.Main class
+	b.have global variable , loggeduser &   registeredUser
+	c.user class for validate user login and register
+2. Dashboard User
+	a.Student and Teacher class for check Classroom object linked with user
+	b.user class for Get profilPicture, and settings properties
+	c.have method to Logout in Main class
+	d.main Wrapper in Main class
+	e.actions is join class with class code or create class
+	f.for create class , attribut must input is class name, section,subject,and room
+3. view Class detail
+	a.main wrapper in Main class, in main wrapper have CHILD WRAPPER
+ 	 - Stream View
+	  a.Classroom class for show detail of class like name & section
+	  b.Topic class for show assignments collected 2 weeks later in Upcoming layout
+	  c.Topic class for show assignments created in Post layout ordered from new assignments
+	  d.Classroom class for show posts and the comments ordered from new post/announ
+	  e.in Stream view has CHILD WRAPPER
+	    - Create post/announcement view
+ 	      a. Post/Announcement class for show drafted post/announcement based user login
+	      b. Post/Announcement class for show scheduled post/announcement based user login
+	      c. classroom class & post/announcement class for create post/announcement
+	      d. action for create is post,scheduled(must be future date), and save draft
+	    - About class view
+	      a. Classroom class for show detail of class like name,section, code class and etc
+
+	 - Classwork view
+	  a. Topic class for show all topic created
+	  b. Assignment class to show all assigments on class
+	  c. StudentWork class to show how many assigned and turned in from statusWork atrr
+	  d. in Classwork view has CHILD WRAPPER
+	    - Add Assignment view
+	      a. Topic class for linked the assigment to a topic created, if no topic linked to nulled topic
+	      b. Assignment class for created object assigment
+	      c. Classroom class for show students will looked the assigment, default all students
+	      d. action for create is post,scheduled(must be future date), and save draft
+	    - Add topic view
+	      a. Topic class for created object topic
+	      b. Classroom class for add the created object topic to attribut listTopic
+	    - Add material view
+	      a. Topic class for linked the assigment to a topic created, if no topic linked to nulled topic
+	      b. Material class for created object assigment
+	      c. Classroom class for show students will looked the assigment, default all students
+	      d. action for create is post,scheduled(must be future date), and save draft
+	    - Add Question
+
+	    - view Detail Assignment
+	      a. Assignment class for show detail of assignment descriptions
+	      b. StudentWork class for show all status of student work like assigned,turned in, and graded
+	      c. in view Detail Assignment has CHILD WRAPPER
+
+		- view detail turned in assignment of a user
+		 a. Assignment class for show description of assignment
+		 b. StudentWork class for show the when turned in, the contents, and private comment
+		 c. action for this view is grading score, add private comment , and return for give grade for student
+
+
+	  - People view
+	   a. Classroom class for show all teachers and students
+	   b. user class for show the name of teachers and students
+	   c. actions for people view is invite teacher, invite student by email address
+	   d. in People view has CHILD WRAPPER
+	    - view detail for teacher
+	     a. User class for show the name of teachers
+	     b. action for this view is remove teacher(not class owner) from class or make class owner if login as class owner,and
+		leave class if login as teacher in this class
+	    - view detail for student
+	     a. User class for show the description of student
+	     b. Assignment class for show the assignments title and due date
+	     c. StudentWork class for show the status work of student in the assignments(assigned,turned in,missing) if graded show score
+
+	  - Setting class view
+	   a. Classroom class for show the detail of class like name,section,room, subject in Detail layout
+	   b. Classroom class for show the detail of class like class code , privacy post in General layout
+	   c. actions for this view is change the attribut of classroom class, for class code choice is reset and disabled,
+	      for privacy post the choice is "students can post and comments","student can only comment", "only teacher can post or comment"
+
+
+
+
+
