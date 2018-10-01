@@ -34,7 +34,6 @@ public class ClassRoom {
 
         //set default privacyPost
         this.setPrivacyPost(0);
-
     }
 
     //--------------------------------------------------------------------------------------------//
@@ -52,6 +51,24 @@ public class ClassRoom {
             hasil= hasil+hasilnomor+hasilchar;
         }
         return hasil;
+    }
+
+    public int getStatusOnClass(User user){
+        //return true if teacher, false if student
+        //looping for check in teacher
+        for (Teacher teacher : getListTeacher()){
+            if (teacher.getTeacher() == user){
+                return 0;
+            }
+        }
+
+        for (Student student : getListStudent()){
+            if (student.getStudent() == user){
+                return 1;
+            }
+        }
+
+        return -1;
     }
 
     //--------------------------------------setter method-----------------------------------------//

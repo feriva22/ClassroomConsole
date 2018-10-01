@@ -42,12 +42,39 @@ public class General {
         loggedin = null;
 
         //create demo user
-        User edi = new User();
-        edi.setEmail("edi@gmail.com");
-        edi.setName("edi");
-        edi.setPassword("123456");
-        listRegisteredUser.add(edi);
+        regisProcess("edi@gmail.com","edi","123456");
+        regisProcess("dia@gmail.com","dia","12345");
+        regisProcess("tedi@gmail.com","tedi","123123");
 
+        //create demo class for the user edi
+        loggedin = searchUser("edi@gmail.com");
+        createClassProcess("Internet of things","electro","electro","class A");
+        createClassProcess("Data Science","science","science","class B");
+
+        //create demo class for the user dia
+        loggedin = searchUser("dia@gmail.com");
+        createClassProcess("Operating System","computer","computer","class A");
+
+        //create demo class for the user tedi joined all class has created above
+        loggedin = searchUser("tedi@gmail.com");
+        for (ClassRoom myClass :listClassRoom){
+            joinClassProcess(myClass.getClassCode());
+        }
+
+        //back to first visit
+        loggedin = null;
+
+
+
+    }
+
+    public static User searchUser(String email){
+        for (User user : listRegisteredUser){
+            if (user.getEmail().equalsIgnoreCase(email)){
+                return user;
+            }
+        }
+        return null;
     }
 
     public static boolean regisProcess(String email,String name, String pass){
@@ -112,7 +139,6 @@ public class General {
             return false;   //if user has join in the class
         }
 
-
         for (ClassRoom theClass :listClassRoom){
             if (theClass.getClassCode().equals(codeClass)){
                 loggedin.addStudyOn(theClass,true);
@@ -122,6 +148,10 @@ public class General {
         return false;
     }
 
+    public static void leaveClassProcess(ClassRoom theClassroom){
+        theClassroom.getListStudent().removeIf(t -> t.getStudent() == loggedin);
+        loggedin.getStudentStatus().getStudyOn().removeIf(t -> t.getClassName().equals(theClassroom.getClassName()));
+    }
 
 
     //--------------------------------------------------------------------------//
@@ -180,7 +210,8 @@ public class General {
 
     public static void dashboardView() throws InterruptedException {
         clsScreen();
-        System.out.println("Login as "+loggedin.getName());
+        System.out.println("List Classes");
+        System.out.println("Hello "+loggedin.getName());
 
         //clear list classroom first
         tmpListClass.clear();
@@ -202,7 +233,7 @@ public class General {
         }
 
         //TODO create case if select join class or create class
-        System.out.println("Action : a.join class b.Create class c.Logout ");
+        System.out.println("Action : a.join class b.Create class c.Leave class d.Logout");
         System.out.print("input : ");
         String inputan = getInput();
         if (inputan.equalsIgnoreCase("a")){
@@ -251,13 +282,97 @@ public class General {
             }
         }
         else if(inputan.equalsIgnoreCase("c")){
+            System.out.print("Please choice the number class will be leaved : ");
+            String choice = getInput();
+            if (Integer.parseInt(choice) <= 0 || Integer.parseInt(choice) > tmpListClass.size()){
+                System.out.println("Your choice is invalid");
+                System.out.println("refresh page ,..................");
+                Thread.sleep(1000);
+                dashboardView();
+            }
+            else {
+                System.out.print("Are you sure want to leave the class (y/n) : ");
+                String choiceCheck = getInput();
+                if (choiceCheck.equalsIgnoreCase("y")){
+                    leaveClassProcess(tmpListClass.get(Integer.parseInt(choice)-1));
+                    System.out.println("Success leave class");
+                    System.out.println("refresh page ,..................");
+                    Thread.sleep(1000);
+                    dashboardView();
+                }
+                else {
+                    System.out.println("refresh page ,..................");
+                    Thread.sleep(1000);
+                    dashboardView();
+                }
+            }
+        }
+        else if(inputan.matches("[0-9]+")){
+            if (Integer.parseInt(inputan) <= tmpListClass.size() && Integer.parseInt(inputan) > 0) {
+                viewClassRoom(tmpListClass.get(Integer.parseInt(inputan)-1));
+            }
+            else {
+                System.out.println("The number list of class nothing");
+                System.out.println("refresh page ,....................");
+                Thread.sleep(1000);
+                dashboardView();
+            }
+        }
+        else if(inputan.equalsIgnoreCase("d")){
             //logout
             logoutProcess();
             System.out.println("Logout success");
             System.out.println("Back to choice,........ ");
             Thread.sleep(1000);
+        }
+
+    }
+
+    public static void viewClassRoom(ClassRoom theClass) throws InterruptedException {
+        clsScreen();
+        System.out.println("Class Detail :");
+        System.out.println(theClass.getClassName()+" ("+theClass.getSection()+")");
+        System.out.println("Class code : "+theClass.getClassCode());
+        if (theClass.getStatusOnClass(loggedin) == 0){
+            System.out.println("Hello teacher "+loggedin.getName());
+        }
+        else if (theClass.getStatusOnClass(loggedin) == 1){
+            System.out.println("Hello student "+loggedin.getName());
+        }
+        else {
+            System.out.println("Something wrong in query status user on class");
+        }
+
+
+        System.out.println("=============================================================");
+        System.out.println("a. Stream view");
+        System.out.println("b. Classwork view");
+        System.out.println("c. People view");
+        System.out.println("d. Setting");
+        System.out.println("e. Back to Dashboard");
+        System.out.print("input : ");
+        String choice = getInput();
+        if (choice.equalsIgnoreCase("a")){
 
         }
+        else if (choice.equalsIgnoreCase("b")){
+
+        }
+        else if (choice.equalsIgnoreCase("c")){
+
+        }
+        else if (choice.equalsIgnoreCase("d")){
+
+        }
+        else if(choice.equalsIgnoreCase("e")){
+            System.out.println("Back to Dashboard,..........");
+            Thread.sleep(1000);
+            dashboardView();
+        }
+    }
+
+    public void viewPeople(ClassRoom theClass){
+
     }
 
 

@@ -15,7 +15,6 @@ public class Student {
                 return myClass;
             }
         }
-
         return null;
     }
 
