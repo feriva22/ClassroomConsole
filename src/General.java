@@ -1,4 +1,7 @@
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Scanner;
 
@@ -8,6 +11,9 @@ public class General {
     public static List<User> listRegisteredUser = new ArrayList<>();
     public static List<ClassRoom> listClassRoom = new ArrayList<>();
     public static List<ClassRoom> tmpListClass = new ArrayList<>();
+
+    public static List<Assignment> tmpListAssignment = new ArrayList<>();
+
 
 
     //-------------------------------properties controller ----------------------//
@@ -32,12 +38,21 @@ public class General {
         }
     }
 
+    public static ClassRoom getClassByName(String name){
+        for (ClassRoom classRoom : listClassRoom){
+            if (classRoom.getClassName().equalsIgnoreCase(name)){
+                return classRoom;
+            }
+        }
+        return null;
+    }
+
 
     //--------------------------------------------------------------------------//
 
 
     //--------------------------------process controller------------------------//
-    public static void init(){
+    public static void init() throws ParseException {
         //first visit
         loggedin = null;
 
@@ -45,6 +60,7 @@ public class General {
         regisProcess("edi@gmail.com","edi","123456");
         regisProcess("dia@gmail.com","dia","12345");
         regisProcess("tedi@gmail.com","tedi","123123");
+        regisProcess("dinda@gmail.com","dinda","123123");
 
         //create demo class for the user edi
         loggedin = searchUser("edi@gmail.com");
@@ -60,6 +76,26 @@ public class General {
         for (ClassRoom myClass :listClassRoom){
             joinClassProcess(myClass.getClassCode());
         }
+
+        //create demo class for the user dinda joined all clasas has created above
+        loggedin = searchUser("dinda@gmail.com");
+        for (ClassRoom myClass : listClassRoom){
+            joinClassProcess(myClass.getClassCode());
+        }
+
+
+        //auto create topic and assignment
+        loggedin = searchUser("edi@gmail.com");
+        createTopicProcess(getClassByName("Internet of things"),"Tugas dasar");
+        createAssignment(getClassByName("Internet of things"),"tugas 1","kumpulkan tugas baru anda",
+                "100",new SimpleDateFormat("dd-MM-yyy,HH-mm-ss").parse("10-10-2018,10-10-0"),"coba.com",
+                false,null,"1",
+                "x");
+
+        createAssignment(getClassByName("Internet of things"),"tugas 2","kumpulkan tugas kedua anda",
+                "100",null,"coba.com",
+                false,null,"1",
+                "x");
 
         //back to first visit
         loggedin = null;
@@ -121,7 +157,6 @@ public class General {
         newClass.setSubject(subject);
         newClass.setRoom(room);
         newClass.setOwner(loggedin.getTeacherStatus());
-        newClass.setListTeacher(loggedin.getTeacherStatus());   //add teacher to list teacher
 
         //add newClass to list class teach in Teacher
         loggedin.addTeachingOn(newClass,true);
@@ -153,13 +188,75 @@ public class General {
         loggedin.getStudentStatus().getStudyOn().removeIf(t -> t.getClassName().equals(theClassroom.getClassName()));
     }
 
+    public static boolean createTopicProcess(ClassRoom theClass,String nameTopic){
+        if (theClass.getTopicByName(nameTopic) == null){
+            Topic newTopic = new Topic();
+            newTopic.setName(nameTopic);
+            newTopic.setClassLocation(theClass);
+
+            theClass.setListTopic(newTopic);
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
+
+    public static boolean createAssignment(ClassRoom theClassroom,String title,String instructions, String pointGrade, Date dueDate,
+                                           String insertLink,Boolean isDrafted, Date scheduledDate, String topic, String lookedFor){
+
+        Assignment newAssignment = new Assignment();
+        newAssignment.setTitle(title);
+        newAssignment.setClasses(theClassroom);
+        newAssignment.setInsertLink(insertLink);
+        newAssignment.setInstructions(instructions);
+        newAssignment.setPointGrade(Integer.parseInt(pointGrade));
+        newAssignment.setCreatedBy(loggedin.getTeacherStatus());
+        newAssignment.setDueDate(dueDate);
+        newAssignment.setDrafted(isDrafted);
+        newAssignment.setDateScheduled(scheduledDate);
+        //check if topic is x is no topic or other
+        if (topic.equalsIgnoreCase("x")){
+            newAssignment.setTopic(null);
+        }
+        else {
+            newAssignment.setTopic(theClassroom.getListTopic().get(Integer.parseInt(topic)-1));
+            theClassroom.getListTopic().get(Integer.parseInt(topic)-1).setListAssignment(newAssignment);
+        }
+
+        //add student will be added to StudentWork and lookedFor
+        //TODO next future need protection input
+        if (lookedFor.equalsIgnoreCase("x")){
+            for (Student student : theClassroom.getListStudent()){
+                StudentWork studentWork = new StudentWork();
+                studentWork.setStudent(student);
+                studentWork.setTheAssignment(newAssignment);
+
+                newAssignment.setListStudentWork(studentWork);
+            }
+        }
+        else {
+            //if not all student so pick student with spesific number choice
+            String[] choiceStudentNumber = lookedFor.split(",");
+            for (String choice : choiceStudentNumber) {
+                StudentWork studentWork = new StudentWork();
+                studentWork.setStudent(theClassroom.getListStudent().get(Integer.parseInt(choice) - 1));
+                studentWork.setTheAssignment(newAssignment);
+
+                newAssignment.setListStudentWork(studentWork);
+            }
+        }
+
+        return true;
+    }
+
 
     //--------------------------------------------------------------------------//
 
 
     //---------------------------------view controller -------------------------//
 
-    public static void loginView () throws InterruptedException {
+    public static void loginView () throws InterruptedException, ParseException {
         clsScreen();
         System.out.println("LOGIN FORM");
         System.out.print("Email :");
@@ -181,7 +278,7 @@ public class General {
 
     }
 
-    public static void regisView() throws InterruptedException {
+    public static void regisView() throws InterruptedException, ParseException {
         clsScreen();
         System.out.println("REGIS FORM");
         System.out.print("Email : ");
@@ -208,7 +305,7 @@ public class General {
         //TODO add other attribut form in future
     }
 
-    public static void dashboardView() throws InterruptedException {
+    public static void dashboardView() throws InterruptedException, ParseException {
         clsScreen();
         System.out.println("List Classes");
         System.out.println("Hello "+loggedin.getName());
@@ -328,7 +425,7 @@ public class General {
 
     }
 
-    public static void viewClassRoom(ClassRoom theClass) throws InterruptedException {
+    public static void viewClassRoom(ClassRoom theClass) throws InterruptedException, ParseException {
         clsScreen();
         System.out.println("Class Detail :");
         System.out.println(theClass.getClassName()+" ("+theClass.getSection()+")");
@@ -348,44 +445,372 @@ public class General {
         System.out.println("a. Stream view");
         System.out.println("b. Classwork view");
         System.out.println("c. People view");
-        System.out.println("d. Setting");
-        System.out.println("e. Back to Dashboard");
+        System.out.println("d. Back to Dashboard");
+        if (theClass.getStatusOnClass(loggedin) ==0) {System.out.println("e. Setting");}
         System.out.print("input : ");
         String choice = getInput();
         if (choice.equalsIgnoreCase("a")){
 
         }
         else if (choice.equalsIgnoreCase("b")){
-
+            viewClasswork(theClass);
         }
         else if (choice.equalsIgnoreCase("c")){
-
+            clsScreen();
+            viewPeople(theClass);
         }
         else if (choice.equalsIgnoreCase("d")){
-
-        }
-        else if(choice.equalsIgnoreCase("e")){
             System.out.println("Back to Dashboard,..........");
             Thread.sleep(1000);
             dashboardView();
         }
+        else if(choice.equalsIgnoreCase("e")){
+            viewSetting(theClass);
+        }
+        else {
+            System.out.println("refresh page ,....................");
+            Thread.sleep(1000);
+            viewClassRoom(theClass);
+        }
     }
 
-    public void viewPeople(ClassRoom theClass){
+    public static void viewClasswork(ClassRoom theClass) throws InterruptedException, ParseException {
+
+        tmpListAssignment.clear();
+        int i =1;
+        int j =1;
+        int statusUser = theClass.getStatusOnClass(loggedin);
+        clsScreen();
+        System.out.println("ClassWork View");
+
+        for (Topic topic : theClass.getListTopic()){
+            System.out.println("* "+topic.getName());
+            System.out.println("  -> Assignment");
+            for (Assignment assignment : topic.getListAssignment()){
+                //add the assignment to tmp
+                tmpListAssignment.add(assignment);
+                System.out.println("   "+i+". "+assignment.getTitle());
+                System.out.println("        "+assignment.getTotalTurnedIn()+" Turned In "
+                        +assignment.getTotalGraded()+" Graded "+
+                        (assignment.getListStudentWork().size()-assignment.getTotalTurnedIn()-assignment.getTotalGraded())+" Assigned");
+                i++;
+            }
+            System.out.println("  -> Material");
+            for (Material material : topic.getListMaterial()){
+                System.out.println("   "+j+". "+material.getTitle());
+                j++;
+            }
+        }
+        System.out.println();
+        if (statusUser == 0) {
+            System.out.println("Actions : a.Add b.Pick Assignment c.Pick Material x.Back to Class Detail");
+        }
+        else {
+            System.out.println("Actions : a.Pick Assignment b.pick Material x.Back to Class Detail");
+        }
+        System.out.print("input : ");
+        String choice = getInput();
+        if (choice.equalsIgnoreCase("a")){
+            if (statusUser==0){
+                //create class
+                System.out.println("Add : a.Add Assignment b.Add Questions c.Add Material d.Add Topic e.Back to Class Work");
+                System.out.print("input : ");
+                String choiceAdd = getInput();
+                if (choiceAdd.equalsIgnoreCase("a")){
+                    //add assignment
+                    clsScreen();
+                    System.out.println("Add assignment Form for class "+theClass.getClassName());
+                    System.out.print("Input Title : ");
+                    String title = getInput();
+                    System.out.print("Input Instructions : ");
+                    String instruction = getInput();
+                    System.out.print("Input max point Given : ");
+                    String point = getInput();
+                    System.out.print("Input insert link : ");
+                    String insertLink = getInput();
+
+                    System.out.print("Have due date ? if yes input day-month-year,hour-minute-seconds , if no input none :");
+                    String dueDate = getInput();
+                    Date dueDateAssignment = null;
+                    if (dueDate.equalsIgnoreCase("none")){
+                        dueDateAssignment = null;
+                    }
+                    else {
+                        dueDateAssignment = new SimpleDateFormat("dd-MM-yyyy,HH-mm-ss").parse(dueDate);
+                    }
+
+                    System.out.println("Choice student will look the Assignment : ");
+                    int s=1;
+                    System.out.println("x. All student");
+                    for(Student student : theClass.getListStudent()){
+                        System.out.println(s+". "+student.getStudent().getName());
+                        s++;
+                    }
+                    System.out.print("input (if multiple, input number with separated ',' ) : ");
+                    String lookedFor = getInput();
+
+                    System.out.println("Choice topic will be assigned to the assignment : ");
+                    int t =1;
+                    System.out.println("x. no Topic");
+                    for (Topic topic : theClass.getListTopic()){
+                        System.out.println(t+". "+topic.getName());
+                        t++;
+                    }
+
+                    System.out.print("input choice : ");
+                    String choicesTopic = getInput();
+
+                    System.out.println("Actions : a.Post b.Scheduled c.Save Draft");
+                    System.out.print("input : ");
+                    String action = getInput();
+                    if (action.equalsIgnoreCase("a")){
+                        //post without scheduled and save draft
+                        createAssignment(theClass,title,instruction,point,dueDateAssignment,insertLink,false,
+                                null,choicesTopic,lookedFor);
+                        System.out.println("Success create Assignment ");
+                        System.out.println("Refresh page,..............");
+                        Thread.sleep(1000);
+                        viewClasswork(theClass);
+
+                    }
+                    else if (action.equalsIgnoreCase("b")){
+                        //post with scheduled and without save draft
+                        System.out.print("Schedule Date format (day-month-year,hour-minute-seconds) :");
+                        String scheduleDate = getInput();
+                        Date scheduleDateAssignment = new SimpleDateFormat("dd-MM-yyyy,HH-mm-ss").parse(scheduleDate);
+                        createAssignment(theClass,title,instruction,point,dueDateAssignment,insertLink,false,
+                                scheduleDateAssignment,choicesTopic,lookedFor);
+
+                    }
+                    else if (action.equalsIgnoreCase("c")){
+                        //post with scheduled
+                        createAssignment(theClass,title,instruction,point,dueDateAssignment,insertLink,false,
+                                null,choicesTopic,lookedFor);
+                    }
+
+                }
+                else if (choiceAdd.equalsIgnoreCase("b")){
+                    //add question
+                }
+                else if (choiceAdd.equalsIgnoreCase("c")){
+                    //add material
+                }
+                else if (choiceAdd.equalsIgnoreCase("d")){
+                    clsScreen();
+                    System.out.print("Input the name Topic : ");
+                    String name = getInput();
+                    if (createTopicProcess(theClass,name)){
+                        System.out.println("Success create topic");
+                        System.out.println("refresh page ,....................");
+                        Thread.sleep(1000);
+                        viewClasswork(theClass);
+                    }
+                    else {
+                        System.out.println("Failed create topic ");
+                        System.out.println("refresh page ,....................");
+                        Thread.sleep(1000);
+                        viewClasswork(theClass);
+                    }
+                }
+                else if (choiceAdd.equalsIgnoreCase("e")){
+                    System.out.println("refresh page ,....................");
+                    Thread.sleep(1000);
+                    viewClasswork(theClass);
+                }
+            }
+            else {
+                //pick assignment if student
+                System.out.print("Choice the number Assignment : ");
+                String choiceAssign = getInput();
+                viewDetailAssignment(tmpListAssignment.get(Integer.parseInt(choiceAssign)-1));
+
+            }
+        }
+        else if(choice.equalsIgnoreCase("b")){
+            //pick material if student
+            //pick assignment if teacher
+        }
+        else if(choice.equalsIgnoreCase("c")){
+            //pick material for teacher
+        }
+        else if(choice.equalsIgnoreCase("x")){
+            System.out.println("Back to Class Detail");
+            Thread.sleep(1000);
+            viewClassRoom(theClass);
+        }
 
     }
+
+    public static void viewDetailAssignment(Assignment assignment) throws InterruptedException, ParseException {
+        clsScreen();
+        int statusPrivacy = assignment.getClasses().getStatusOnClass(loggedin);
+        if (statusPrivacy == 1) {
+            System.out.println("Assignment detail");
+            System.out.println(assignment.getTitle() + " by " + assignment.getCreatedBy().getTeacher().getName());
+            System.out.println("posted " + new SimpleDateFormat("MMM dd, HH:mm").format(assignment.getCreateDate()));
+            if (assignment.getDueDate() != null) {
+                System.out.println("Due " + new SimpleDateFormat("MMM dd, HH:mm").format(assignment.getDueDate()));
+            } else {
+                System.out.println("No due date");
+            }
+
+            System.out.println(assignment.getInstructions());
+            String status = assignment.getWorkByStudent(loggedin.getStudentStatus()).getStatusWork();
+            System.out.println("Status : " + status);
+
+
+            System.out.println("Actions : a." + ((status.equalsIgnoreCase("assigned")) ? "Submit work" : "Resubmit") + " b.Back to classwork view");
+            System.out.print("input : ");
+            String choice = getInput();
+            if (choice.equalsIgnoreCase("a")) {
+                if (status.equalsIgnoreCase("assigned") || status.equalsIgnoreCase("turned in")) {
+                    System.out.print("Input the link for turned work : ");
+                    String link = getInput();
+                    assignment.setInsertLink(link);
+                    assignment.getWorkByStudent(loggedin.getStudentStatus()).setStatusWork("turned in");
+                    System.out.println("Success turned in");
+                    System.out.println("Refresh page,...............");
+                    Thread.sleep(1000);
+                    viewDetailAssignment(assignment);
+                }
+
+            }
+            else  if (choice.equalsIgnoreCase("b")){
+                System.out.println("Back to classwork view ");
+                Thread.sleep(1000);
+                viewClasswork(assignment.getClasses());
+            }
+
+        }
+
+    }
+
+    public static void viewPeople(ClassRoom theClass) throws InterruptedException, ParseException {
+        // show list of teacher
+        clsScreen();
+
+        System.out.println("====Teachers====");
+        int i = 1;
+        for (Teacher teacher : theClass.getListTeacher()) {
+            System.out.println(i + ". " + teacher.getTeacher().getName());
+            i++;
+        }
+        System.out.println();
+        // show list of Student
+        if (theClass.getStatusOnClass(loggedin) == 0) {
+            System.out.println("====Students====");
+        } else if (theClass.getStatusOnClass(loggedin) == 1) {
+            System.out.println("====Classmates====");
+        } else {
+            System.out.println("Something wrong.....");
+        }
+        int j = 1;
+        for (Student student : theClass.getListStudent()) {
+            System.out.println(j + ". " + student.getStudent().getName());
+            j++;
+        }
+
+        System.out.println("=============================================================");
+        if (theClass.getStatusOnClass(loggedin) == 0) {
+            System.out.println("a. Back to Class Detail");
+            System.out.print("input : ");
+            String choice = getInput();
+            if (choice.equalsIgnoreCase("a")) {
+                System.out.println("Back to class Detail,..........");
+                Thread.sleep(1000);
+                viewClassRoom(theClass);
+            }
+        } else if (theClass.getStatusOnClass(loggedin) == 1) {
+            System.out.println("action :" + " a. Pick Teacher " + "b. Pick Student " + "c. add Teacher "
+                    + "d. add Student " + "e. Back to Class Detail ");
+            System.out.print("input : ");
+            String choice = getInput();
+            if (choice.equalsIgnoreCase("a")) {
+
+            } else if (choice.equalsIgnoreCase("b")) {
+
+            } else if (choice.equalsIgnoreCase("c")) {
+
+            } else if (choice.equalsIgnoreCase("d")) {
+
+            } else if (choice.equalsIgnoreCase("e")) {
+                System.out.println("Back to class Detail,..........");
+                Thread.sleep(1000);
+                viewClassRoom(theClass);
+            }
+        }
+    }
+
+    public static void viewSetting(ClassRoom theClass) throws InterruptedException, ParseException {
+        System.out.println("Classroom of : " + theClass.getClassName());
+        System.out.println("Section : " + theClass.getSection());
+        System.out.println("Room : " + theClass.getRoom());
+        System.out.println("Subject : " + theClass.getSubject());
+        System.out.println("Kode kelas : " + theClass.getClassCode());
+
+        System.out.println("action :" + " a.change name class " + "b.change section " + "c.change room "
+                + "d.change subject " + "e.disabled class " + "f.enabled class" + "g.Back to Classroom");
+        System.out.print("input : ");
+        String choice = getInput();
+        if (choice.equalsIgnoreCase("a")) {
+            System.out.println("Input class name : ");
+            String classname = getInput();
+            theClass.setClassName(classname);
+            System.out.println("Back to viewSetting,.......");
+            Thread.sleep(1000);
+            viewSetting(theClass);
+        } else if (choice.equalsIgnoreCase("b")) {
+            System.out.println("Input section : ");
+            String sectionname = getInput();
+            theClass.setSection(sectionname);
+            System.out.println("Back to viewSetting,.......");
+            Thread.sleep(1000);
+            viewSetting(theClass);
+        } else if (choice.equalsIgnoreCase("c")) {
+            System.out.println("Input room : ");
+            String room = getInput();
+            theClass.setRoom(room);
+            System.out.println("Back to viewSetting,.......");
+            Thread.sleep(1000);
+            viewSetting(theClass);
+        } else if (choice.equalsIgnoreCase("d")) {
+            System.out.println("Input subject : ");
+            String subject = getInput();
+            theClass.setSubject(subject);;
+            System.out.println("Back to viewSetting,.......");
+            Thread.sleep(1000);
+            viewSetting(theClass);
+        } else if (choice.equalsIgnoreCase("e")) {
+            theClass.setClassCode(null);
+            System.out.println("Back to viewSetting,.......");
+            Thread.sleep(1000);
+            viewSetting(theClass);
+        }else if (choice.equalsIgnoreCase("f")) {
+            theClass.setClassCode(theClass.getRandomCode());
+            System.out.println("Back to viewSetting,.......");
+            Thread.sleep(1000);
+            viewSetting(theClass);
+        }else if (choice.equalsIgnoreCase("g")) {
+            System.out.println("Back to class Detail,..........");
+            Thread.sleep(1000);
+            viewClassRoom(theClass);
+        }
+
+    }
+
+
 
 
     //------------------------------------------------------------------------------//
 
-    public static void main(String[] args) throws InterruptedException {
+    public static void main(String[] args) throws InterruptedException, ParseException {
         init();
 
         while(true){
             clsScreen();
-            System.out.println("Pilih login/regis");
+            System.out.println("Choice Login or Registration");
             System.out.println("1. Login");
-            System.out.println("2. Registrasi");
+            System.out.println("2. Registration");
             System.out.print("input : ");
 
             String input = getInput();

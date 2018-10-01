@@ -15,7 +15,7 @@ public class ClassRoom {
     private int privacyPost; //(0-2)studentcan post & comment or student only comment , or only teacher post and comment
     List<Post> studentPost = new ArrayList<>();
     List<Announcement> teacherPost = new ArrayList<>();
-    List<Topic> listTopic = new ArrayList<>();
+    private List<Topic> listTopic = new ArrayList<>();
 
 
 
@@ -71,6 +71,15 @@ public class ClassRoom {
         return -1;
     }
 
+    public Topic getTopicByName(String nameTopic){
+        for (Topic topic : getListTopic()){
+            if (topic.getName().equalsIgnoreCase(nameTopic)){
+                return topic;
+            }
+        }
+        return null;
+    }
+
     //--------------------------------------setter method-----------------------------------------//
 
     public void setClassName(String className) {
@@ -108,6 +117,11 @@ public class ClassRoom {
     public void setListStudent(Student student) {
         this.listStudent.add(student);
     }
+
+    public void setListTopic(Topic topic) {
+        this.listTopic.add(topic);
+    }
+
     //----------------------------------------------------------------------------------//
 
 
@@ -154,6 +168,10 @@ public class ClassRoom {
 
     public List<Student> getListStudent() {
         return listStudent;
+    }
+
+    public List<Topic> getListTopic() {
+        return listTopic;
     }
 
 
